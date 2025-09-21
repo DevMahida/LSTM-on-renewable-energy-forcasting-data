@@ -14,9 +14,9 @@ def load_lstm_model():
 def load_data():
     # Replace with your actual dataset file
     df_renewable_energy_forcasting = pd.read_excel('renewable_energy_forecasting_dataset.xlsx')
-    df_renewable_energy_forcasting['timestamp'] = pd.to_datetime(df['timestamp'])
+    df_renewable_energy_forcasting['timestamp'] = pd.to_datetime(df_renewable_energy_forcasting['timestamp'])
     df_renewable_energy_forcasting.set_index('timestamp', inplace=True)
-    return df
+    return df_renewable_energy_forcasting
 
 st.title("⚡ Renewable Energy Forecasting with LSTM")
 
