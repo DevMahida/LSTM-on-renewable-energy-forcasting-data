@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # Load Data
 # -------------------------
 @st.cache_data
-def load_data(file_path="renewable_energy_data.xlsx"):
+def load_data(file_path="renewable_energy_forecasting_dataset"):
     df = pd.read_excel(file_path)
     return df
 
