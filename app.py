@@ -9,17 +9,20 @@ import matplotlib.pyplot as plt
 # Load Data
 # -------------------------
 @st.cache_data
-def load_data(file_path="renewable_energy_forecasting_dataset"):
-    df_renewable_energy_forcasting = pd.read_excel(file_path)
-    return df_renewable_energy_forcasting
+def load_data(file_path="renewable_energy_forecasting_dataset.xlsx"):
+    """
+    Load the Excel dataset from the repo.
+    """
+    df = pd.read_excel(file_path)
+    return df
 
 # -------------------------
 # Load LSTM Model
 # -------------------------
 @st.cache_resource
-def load_lstm_model(model_path="renewable_energy_lstm_model"):
+def load_lstm_model(model_path="renewable_energy_lstm_model.h5"):
     """
-    Load LSTM model saved in TensorFlow SavedModel format.
+    Load the LSTM model saved in H5 format.
     Use compile=False to avoid InputLayer deserialization issues.
     """
     model = load_model(model_path, compile=False)
@@ -31,27 +34,27 @@ def load_lstm_model(model_path="renewable_energy_lstm_model"):
 st.title("Renewable Energy Forecasting using LSTM")
 
 # Load data
-df_renewable_energy_forcasting = load_data()
-st.write("### Sample Data", df_renewable_energy_forcasting.head())
+df = load_data()
+st.write("### Sample Data", df.head())
 
 # Load model
 model = load_lstm_model()
 
 # Normalize
 scaler = MinMaxScaler()
-scaled_data = scaler.fit_transform(df_renewable_energy_forcasting.values)
+scaled_data = scaler.fit_transform(df.values)
 
 # Predict next step (example)
-# Assume last 24 timesteps for prediction
+# Take last 24 timesteps as input
 X_input = np.expand_dims(scaled_data[-24:], axis=0)  # shape (1, 24, n_features)
 predicted_scaled = model.predict(X_input)
 predicted = scaler.inverse_transform(predicted_scaled)
 
 st.write("### Predicted Next Step", predicted)
 
-# Plot
+# Plot actual vs predicted
 plt.figure(figsize=(10, 4))
-plt.plot(range(len(df_renewable_energy_forcasting)), df_renewable_energy_forcasting.values, label="Actual")
-plt.plot(len(df_renewable_energy_forcasting), predicted[0], "ro", label="Predicted Next Step")
+plt.plot(range(len(df)), df.values, label="Actual")
+plt.plot(len(df), predicted[0], "ro", label="Predicted Next Step")
 plt.legend()
 st.pyplot(plt)
