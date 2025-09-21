@@ -67,9 +67,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
+import plotly.graph_objects as go
 
 # -----------------------------
 # Load model and data (cached)
@@ -129,17 +129,23 @@ if st.button("Run Forecast"):
         dummy_array[:, 0:2] = np.array(future_forecast)
         forecast_inversed = scaler.inverse_transform(dummy_array)[:, 0:2]
 
-        # Plot forecast
+        # -----------------------------
+        # Plot using Plotly (faster)
+        # -----------------------------
         future_dates = pd.date_range(df.index[-1] + pd.Timedelta(hours=1),
                                      periods=forecast_horizon, freq="h")
-        fig, ax = plt.subplots(figsize=(12,6))
-        ax.plot(future_dates, forecast_inversed[:,0], label="Solar Forecast (kWh)", color="red")
-        ax.plot(future_dates, forecast_inversed[:,1], label="Wind Forecast (kWh)", color="blue")
-        ax.set_title("LSTM Renewable Energy Forecast")
-        ax.set_xlabel("Time")
-        ax.set_ylabel("kWh")
-        ax.legend()
-        st.pyplot(fig)
-
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=future_dates, y=forecast_inversed[:,0],
+                                 mode='lines', name='Solar Forecast (kWh)',
+                                 line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=future_dates, y=forecast_inversed[:,1],
+                                 mode='lines', name='Wind Forecast (kWh)',
+                                 line=dict(color='blue')))
+        fig.update_layout(title="LSTM Renewable Energy Forecast",
+                          xaxis_title="Time", yaxis_title="kWh")
+        
+        st.plotly_chart(fig, use_container_width=True)
         st.success("Forecast completed ✅")
+
 
