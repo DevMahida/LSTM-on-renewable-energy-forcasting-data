@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 # -------------------------
 @st.cache_data
 def load_data(file_path="renewable_energy_forecasting_dataset"):
-    df = pd.read_excel(file_path)
-    return df
+    df_renewable_energy_forcasting = pd.read_excel(file_path)
+    return df_renewable_energy_forcasting
 
 # -------------------------
 # Load LSTM Model
@@ -31,15 +31,15 @@ def load_lstm_model(model_path="renewable_energy_lstm_model"):
 st.title("Renewable Energy Forecasting using LSTM")
 
 # Load data
-df = load_data()
-st.write("### Sample Data", df.head())
+df_renewable_energy_forcasting = load_data()
+st.write("### Sample Data", df_renewable_energy_forcasting.head())
 
 # Load model
 model = load_lstm_model()
 
 # Normalize
 scaler = MinMaxScaler()
-scaled_data = scaler.fit_transform(df.values)
+scaled_data = scaler.fit_transform(df_renewable_energy_forcasting.values)
 
 # Predict next step (example)
 # Assume last 24 timesteps for prediction
@@ -51,7 +51,7 @@ st.write("### Predicted Next Step", predicted)
 
 # Plot
 plt.figure(figsize=(10, 4))
-plt.plot(range(len(df)), df.values, label="Actual")
-plt.plot(len(df), predicted[0], "ro", label="Predicted Next Step")
+plt.plot(range(len(df_renewable_energy_forcasting)), df_renewable_energy_forcasting.values, label="Actual")
+plt.plot(len(df_renewable_energy_forcasting), predicted[0], "ro", label="Predicted Next Step")
 plt.legend()
 st.pyplot(plt)
