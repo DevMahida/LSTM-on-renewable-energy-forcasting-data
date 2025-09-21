@@ -1,0 +1,65 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import load_model
+
+# Load your trained model (make sure you saved it earlier using model.save('model.h5'))
+@st.cache_resource
+def load_lstm_model():
+    return load_model("model.h5")
+
+@st.cache_data
+def load_data():
+    # Replace with your actual dataset file
+    df = pd.read_excel("renewable_energy_forecasting_dataset.xlsx")
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df.set_index('timestamp', inplace=True)
+    return df
+
+st.title("⚡ Renewable Energy Forecasting with LSTM")
+
+# Sidebar inputs
+lookback = st.sidebar.slider("Lookback hours", min_value=12, max_value=72, value=24)
+forecast_horizon = st.sidebar.slider("Forecast horizon (hours)", min_value=12, max_value=72, value=48)
+
+df = load_data()
+st.write("### Sample Data", df.head())
+
+# Normalize
+scaler = MinMaxScaler(feature_range=(0,1))
+scaled_data = scaler.fit_transform(df)
+
+model = load_lstm_model()
+
+# Prepare input for forecasting
+last_data = scaled_data[-lookback:]
+input_for_forecasting = last_data.reshape((1, lookback, scaled_data.shape[1]))
+
+future_forecast = []
+current_batch = input_for_forecasting.copy()
+
+for i in range(forecast_horizon):
+    next_pred = model.predict(current_batch, verbose=0)
+    future_forecast.append(next_pred[0])
+    
+    next_features = current_batch[0, -1, :].copy()
+    next_features[0:2] = next_pred[0]  # update solar/wind only
+    
+    current_batch = np.append(current_batch[:, 1:, :], [[next_features]], axis=1)
+
+dummy_array = np.zeros((len(future_forecast), scaled_data.shape[1]))
+dummy_array[:, 0:2] = np.array(future_forecast)
+forecast_inversed = scaler.inverse_transform(dummy_array)[:, 0:2]
+
+# Plot forecast
+future_dates = pd.date_range(df.index[-1] + pd.Timedelta(hours=1), periods=forecast_horizon, freq="h")
+fig, ax = plt.subplots(figsize=(12,6))
+ax.plot(future_dates, forecast_inversed[:,0], label="Solar Forecast (kWh)", color="red")
+ax.plot(future_dates, forecast_inversed[:,1], label="Wind Forecast (kWh)", color="blue")
+ax.set_title("LSTM Renewable Energy Forecast")
+ax.set_xlabel("Time")
+ax.set_ylabel("kWh")
+ax.legend()
+st.pyplot(fig)
