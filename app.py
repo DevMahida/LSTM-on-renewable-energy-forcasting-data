@@ -8,14 +8,14 @@ from tensorflow.keras.models import load_model
 # Load your trained model (make sure you saved it earlier using model.save('model.h5'))
 @st.cache_resource
 def load_lstm_model():
-    return load_model("model.h5")
+    return load_model("renewable_energy_lstm_model.h5")
 
 @st.cache_data
 def load_data():
     # Replace with your actual dataset file
-    df = pd.read_excel("renewable_energy_forecasting_dataset.xlsx")
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df.set_index('timestamp', inplace=True)
+    df_renewable_energy_forcasting = pd.read_excel('renewable_energy_forecasting_dataset.xlsx')
+    df_renewable_energy_forcasting['timestamp'] = pd.to_datetime(df['timestamp'])
+    df_renewable_energy_forcasting.set_index('timestamp', inplace=True)
     return df
 
 st.title("⚡ Renewable Energy Forecasting with LSTM")
@@ -24,12 +24,12 @@ st.title("⚡ Renewable Energy Forecasting with LSTM")
 lookback = st.sidebar.slider("Lookback hours", min_value=12, max_value=72, value=24)
 forecast_horizon = st.sidebar.slider("Forecast horizon (hours)", min_value=12, max_value=72, value=48)
 
-df = load_data()
-st.write("### Sample Data", df.head())
+df_renewable_energy_forcasting = load_data()
+st.write("### Sample Data", df_renewable_energy_forcasting.head())
 
 # Normalize
 scaler = MinMaxScaler(feature_range=(0,1))
-scaled_data = scaler.fit_transform(df)
+scaled_data = scaler.fit_transform(df_renewable_energy_forcasting)
 
 model = load_lstm_model()
 
@@ -54,7 +54,7 @@ dummy_array[:, 0:2] = np.array(future_forecast)
 forecast_inversed = scaler.inverse_transform(dummy_array)[:, 0:2]
 
 # Plot forecast
-future_dates = pd.date_range(df.index[-1] + pd.Timedelta(hours=1), periods=forecast_horizon, freq="h")
+future_dates = pd.date_range(df_renewable_energy_forcasting.index[-1] + pd.Timedelta(hours=1), periods=forecast_horizon, freq="h")
 fig, ax = plt.subplots(figsize=(12,6))
 ax.plot(future_dates, forecast_inversed[:,0], label="Solar Forecast (kWh)", color="red")
 ax.plot(future_dates, forecast_inversed[:,1], label="Wind Forecast (kWh)", color="blue")
